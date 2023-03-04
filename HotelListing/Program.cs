@@ -24,6 +24,14 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    builder.Services.AddCors(o =>
+    {
+        o.AddPolicy("AllowAll",builder=>
+            builder.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+    });
+
 
     var app = builder.Build();
 
@@ -35,6 +43,8 @@ try
     }
 
     app.UseHttpsRedirection();
+
+    app.UseCors("AllowAll");
 
     app.UseAuthorization();
 
