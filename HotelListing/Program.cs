@@ -1,3 +1,6 @@
+using HotelListing.Data;
+using HotelListing.Profile;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 
@@ -24,6 +27,11 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    builder.Services.AddAutoMapper(typeof(MappingProfile));
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    {
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnectionString"));
+    });
     builder.Services.AddCors(o =>
     {
         o.AddPolicy("AllowAll",builder=>
