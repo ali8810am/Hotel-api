@@ -1,5 +1,7 @@
 using HotelListing.Data;
+using HotelListing.IRepository;
 using HotelListing.Profile;
+using HotelListing.Repository;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
@@ -40,6 +42,7 @@ try
                 .AllowAnyMethod());
     });
 
+    builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
     var app = builder.Build();
 

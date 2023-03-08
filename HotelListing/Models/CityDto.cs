@@ -5,7 +5,7 @@ namespace HotelListing.Models
     public class CityDto:CreateCityDto
     {
         public int Id { get; set; }
-        public List<HotelDto> Hotels { get; set; }
+        public List<HotelDto>? Hotels { get; set; }
     }
 
     public class CreateCityDto
