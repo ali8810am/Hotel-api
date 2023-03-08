@@ -8,13 +8,13 @@ namespace HotelListing.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CityController : ControllerBase
+    public class HotelController : ControllerBase
     {
         private readonly ILogger _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CityController(ILogger<CityController> logger, IUnitOfWork unitOfWork, IMapper mapper)
+        public HotelController(ILogger<HotelController> logger, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
@@ -23,17 +23,17 @@ namespace HotelListing.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetCities()
+        public async Task<IActionResult> GetHotels()
         {
             try
             {
-                var cities = await _unitOfWork.Cities.GetAll();
-                var result = _mapper.Map<IList<CityDto>>(cities);
+                var hotels = await _unitOfWork.Hotels.GetAll();
+                var result = _mapper.Map<IList<HotelDto>>(hotels);
                 return Ok(result);
             }
             catch (Exception e)
             {
-                _logger.LogError(e,$"Something went wrong in {nameof(GetCities)}");
+                _logger.LogError(e, $"Something went wrong in {nameof(GetHotels)}");
                 return StatusCode(500, "Internal server error please try again later");
             }
         }
@@ -42,24 +42,19 @@ namespace HotelListing.Controllers
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetCity(int id)
+        public async Task<IActionResult> GetHotel(int id)
         {
             try
             {
-                var city = await _unitOfWork.Cities.Get(c=>c.Id==id);
-                var result = _mapper.Map<CityDto>(city);
+                var hotel = await _unitOfWork.Hotels.Get(c => c.Id == id);
+                var result = _mapper.Map<HotelDto>(hotel);
                 return Ok(result);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Something went wrong in {nameof(GetCity)}");
+                _logger.LogError(e, $"Something went wrong in {nameof(GetHotel)}");
                 return StatusCode(500, "Internal server error please try again later");
             }
         }
-
-
-
-        
-
     }
 }
