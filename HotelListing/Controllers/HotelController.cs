@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using HotelListing.IRepository;
 using HotelListing.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace HotelListing.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class HotelController : ControllerBase
     {
         private readonly ILogger _logger;
@@ -20,6 +22,7 @@ namespace HotelListing.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
+        [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
