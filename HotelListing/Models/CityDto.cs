@@ -19,4 +19,10 @@ namespace HotelListing.Models
         [StringLength(maximumLength: 100, ErrorMessage = "Too long for state name")]
         public string State { get; set; }
     }
+
+    public class UpdateCityDto:CreateCityDto
+    {
+        public int Id { get; set; }
+        public IList<CreateHotelDto> Hotels { get; set; }
+    }
 }

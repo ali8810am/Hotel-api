@@ -28,7 +28,8 @@ try
 // Add services to the container.
 
     builder.Host.UseSerilog();
-    builder.Services.AddControllers();
+    builder.Services.AddControllers().AddNewtonsoftJson(op=>
+        op.SerializerSettings.ReferenceLoopHandling=Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
 

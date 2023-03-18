@@ -9,9 +9,9 @@ namespace HotelListing.Data
         public string? Description { get; set; }
         public string Address { get; set; }
         public double Rating { get; set; }
+        public int CityId { get; set; }
         [ForeignKey(nameof(CityId))]
         public City City { get; set; }
-        public int CityId { get; set; }
 
     }
 }

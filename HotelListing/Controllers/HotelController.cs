@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using HotelListing.Constants;
+using HotelListing.Data;
 using HotelListing.IRepository;
 using HotelListing.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +11,7 @@ namespace HotelListing.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    
+    [Authorize]
     public class HotelController : ControllerBase
     {
         private readonly ILogger _logger;
@@ -22,7 +24,7 @@ namespace HotelListing.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        [Authorize]
+        
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -42,7 +44,7 @@ namespace HotelListing.Controllers
         }
 
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}",Name = "GetHotel")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetHotel(int id)
@@ -59,5 +61,71 @@ namespace HotelListing.Controllers
                 return StatusCode(500, "Internal server error please try again later");
             }
         }
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateHotel([FromBody]CreateHotelDto hotelDto)
+        {
+            _logger.LogInformation($"registration attemped for {hotelDto.Name}");
+            if (!ModelState.IsValid)
+                return BadRequest();
+            try
+            {
+                var hotel = _mapper.Map<Hotel>(hotelDto);
+                await _unitOfWork.Hotels.Add(hotel);
+                await _unitOfWork.Save();
+                return CreatedAtRoute("GetHotel", new { id = hotel.Id },hotel);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Something went wrong in {nameof(GetHotel)}");
+                return StatusCode(500, "Internal server error please try again later");
+            }
+        }
+
+
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateHotel(int id,[FromBody]UpdateHotelDto hotelDto)
+        {
+            _logger.LogInformation($"registration attemped for {hotelDto.Name}");
+            if (!ModelState.IsValid||hotelDto.Id!=id)
+                return BadRequest();
+            try
+            {
+                var hotel =await _unitOfWork.Hotels.Get(h => h.Id == hotelDto.Id);
+                if (hotel==null)
+                {
+                    _logger.LogInformation($" {hotelDto.Name} not found");
+                    return NotFound();
+                }
+                _mapper.Map(hotelDto, hotel);
+                _unitOfWork.Hotels.Update(hotel);
+                await _unitOfWork.Save();
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteHotel(int id)
+        {
+            await _unitOfWork.Hotels.Delete(id);
+            await _unitOfWork.Save();
+            return NoContent();
+        }
     }
+
 }

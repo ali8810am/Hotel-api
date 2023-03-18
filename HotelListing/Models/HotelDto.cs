@@ -24,7 +24,13 @@ namespace HotelListing.Models
         [Required]
         [Range(1,5)]
         public double Rating { get; set; }
-        [Required]
+        //[Required]
+        //[Range(1,100000000)]
         public int CityId { get; set; }
+    }
+
+    public class UpdateHotelDto:CreateHotelDto
+    {
+        public int Id { get; set; }
     }
 }

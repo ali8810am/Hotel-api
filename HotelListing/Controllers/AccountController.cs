@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using HotelListing.Constants;
 using HotelListing.Data;
 using HotelListing.Models;
 using HotelListing.Services;
@@ -58,6 +59,8 @@ namespace HotelListing.Controllers
         public async Task<IActionResult> Register([FromBody] UserDto userDto)
         {
             _logger.LogInformation($"registration attemped for {userDto.FirstName}  {userDto.LastName}");
+            if (userDto.Roles==null)
+                userDto.Roles.Add(UserRoles.Admin);
             if (!ModelState.IsValid)
                 return BadRequest();
             try

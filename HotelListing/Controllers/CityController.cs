@@ -1,8 +1,12 @@
 ﻿using AutoMapper;
+using HotelListing.Constants;
+using HotelListing.Data;
 using HotelListing.IRepository;
 using HotelListing.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace HotelListing.Controllers
 {
@@ -46,7 +50,7 @@ namespace HotelListing.Controllers
         {
             try
             {
-                var city = await _unitOfWork.Cities.Get(c=>c.Id==id);
+                var city = await _unitOfWork.Cities.Get(c=>c.Id==id,new List<string>{ "Hotels" });
                 var result = _mapper.Map<CityDto>(city);
                 return Ok(result);
             }
@@ -58,8 +62,69 @@ namespace HotelListing.Controllers
         }
 
 
+        [Authorize(Roles = UserRoles.Admin)]
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateCity([FromBody] CreateCityDto cityDto)
+        {
+            _logger.LogInformation($"registration attemped for {cityDto.Name}");
+            if (!ModelState.IsValid)
+                return BadRequest();
+            try
+            {
+                var city = _mapper.Map<City>(cityDto);
+                await _unitOfWork.Cities.Add(city);
+                await _unitOfWork.Save();
+                return CreatedAtRoute("GetHotel", new { id = city.Id }, city);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Something went wrong in {nameof(CreateCity)}");
+                return StatusCode(500, "Internal server error please try again later");
+            }
+        }
 
-        
+        //[Authorize(Roles = UserRoles.Admin)]
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateCity(int id, [FromBody] UpdateCityDto cityDto)
+        {
+            _logger.LogInformation($"registration attemped for {cityDto.Name}");
+            if (!ModelState.IsValid || cityDto.Id != id)
+                return BadRequest();
+            try
+            {
+                var city = await _unitOfWork.Cities.Get(h => h.Id == cityDto.Id);
+                if (city == null)
+                {
+                    _logger.LogInformation($" {cityDto.Name} not found");
+                    return NotFound();
+                }
+                _mapper.Map(cityDto, city);
+                _unitOfWork.Cities.Update(city);
+                await _unitOfWork.Save();
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Something went wrong in {nameof(CreateCity)}");
+                return StatusCode(500, "Internal server error please try again later");
+            }
+        }
+
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteCity(int id)
+        {
+            await _unitOfWork.Cities.Delete(id);
+            await _unitOfWork.Save();
+            return NoContent();
+        }
 
     }
 }
