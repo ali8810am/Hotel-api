@@ -15,8 +15,6 @@ namespace HotelListing.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Hotel>().HasOne<City>(h => h.City)
-                .WithMany(c => c.Hotels).HasForeignKey(h=>h.CityId);
             modelBuilder.ApplyConfiguration(new RoleConfiguration());
             modelBuilder.ApplyConfiguration(new CityConfiguration());
             modelBuilder.ApplyConfiguration(new HotelConfiguration());
