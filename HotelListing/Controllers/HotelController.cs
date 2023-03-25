@@ -1,6 +1,8 @@
-﻿using AutoMapper;
+﻿using System.Text.RegularExpressions;
+using AutoMapper;
 using HotelListing.Constants;
 using HotelListing.Data;
+using HotelListing.Exceptions;
 using HotelListing.IRepository;
 using HotelListing.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -28,19 +30,13 @@ namespace HotelListing.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetHotels()
+        public async Task<IActionResult> GetHotels([FromQuery] RequestParameters? parameters)
         {
-            try
-            {
-                var hotels = await _unitOfWork.Hotels.GetAll();
+            
+                var hotels = await _unitOfWork.Hotels.GetAll(parameters);
                 var result = _mapper.Map<IList<HotelDto>>(hotels);
                 return Ok(result);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Something went wrong in {nameof(GetHotels)}");
-                return StatusCode(500, "Internal server error please try again later");
-            }
+           
         }
 
 
@@ -49,17 +45,11 @@ namespace HotelListing.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetHotel(int id)
         {
-            try
-            {
+            
                 var hotel = await _unitOfWork.Hotels.Get(c => c.Id == id);
                 var result = _mapper.Map<HotelDto>(hotel);
                 return Ok(result);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Something went wrong in {nameof(GetHotel)}");
-                return StatusCode(500, "Internal server error please try again later");
-            }
+           
         }
 
         [Authorize(Roles = UserRoles.Admin)]
@@ -71,18 +61,14 @@ namespace HotelListing.Controllers
             _logger.LogInformation($"registration attemped for {hotelDto.Name}");
             if (!ModelState.IsValid)
                 return BadRequest();
-            try
-            {
+            if (Regex.IsMatch(hotelDto.Name, @"^\d"))
+                throw new NameException("name starts with numbers", hotelDto.Name);
+            
                 var hotel = _mapper.Map<Hotel>(hotelDto);
                 await _unitOfWork.Hotels.Add(hotel);
                 await _unitOfWork.Save();
                 return CreatedAtRoute("GetHotel", new { id = hotel.Id },hotel);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Something went wrong in {nameof(GetHotel)}");
-                return StatusCode(500, "Internal server error please try again later");
-            }
+            
         }
 
 
@@ -96,8 +82,7 @@ namespace HotelListing.Controllers
             _logger.LogInformation($"registration attemped for {hotelDto.Name}");
             if (!ModelState.IsValid||hotelDto.Id!=id)
                 return BadRequest();
-            try
-            {
+            
                 var hotel =await _unitOfWork.Hotels.Get(h => h.Id == hotelDto.Id);
                 if (hotel==null)
                 {
@@ -108,12 +93,7 @@ namespace HotelListing.Controllers
                 _unitOfWork.Hotels.Update(hotel);
                 await _unitOfWork.Save();
                 return NoContent();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+           
         }
 
         [HttpDelete("{id:int}")]

@@ -59,7 +59,7 @@ namespace HotelListing.Controllers
         public async Task<IActionResult> Register([FromBody] UserDto userDto)
         {
             _logger.LogInformation($"registration attemped for {userDto.FirstName}  {userDto.LastName}");
-            if (userDto.Roles==null)
+            //if (userDto.Roles==null)
                 userDto.Roles.Add(UserRoles.Admin);
             if (!ModelState.IsValid)
                 return BadRequest();

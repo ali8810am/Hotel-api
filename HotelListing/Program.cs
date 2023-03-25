@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using HotelListing;
 using HotelListing.Data;
 using HotelListing.IRepository;
@@ -5,7 +6,9 @@ using HotelListing.Profile;
 using HotelListing.Repository;
 using HotelListing.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
@@ -28,7 +31,17 @@ try
 // Add services to the container.
 
     builder.Host.UseSerilog();
-    builder.Services.AddControllers().AddNewtonsoftJson(op=>
+
+ 
+    builder.Services.ConfigureRateLimiting(builder.Configuration);
+
+    builder.Services.AddControllers(config =>
+    {
+        config.CacheProfiles.Add("120SecondDuration", new CacheProfile
+        {
+            Duration = 120
+        });
+    }).AddNewtonsoftJson(op=>
         op.SerializerSettings.ReferenceLoopHandling=Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
@@ -42,6 +55,8 @@ try
         options.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnectionString"));
     });
 
+
+    builder.Services.ConfigureHttpCacheHeaders();
     builder.Services.AddAuthentication();
     builder.Services.ConfigureIdentity();
     builder.Services.ConfigureJWT(builder.Configuration);
@@ -58,7 +73,13 @@ try
     builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped<IAuthManager, AuthManager>();
 
+    builder.Services.ConfigureVersioning();
+
+
+
+
     var app = builder.Build();
+
 
     app.UseAuthentication();
 // Configure the HTTP request pipeline.
@@ -68,9 +89,16 @@ try
         app.UseSwaggerUI();
     }
 
+    app.ConfigureExceptionHandler();
+
     app.UseHttpsRedirection();
 
     app.UseCors("AllowAll");
+
+    app.UseIpRateLimiting();
+    app.UseResponseCaching();
+    app.UseHttpCacheHeaders();
+
 
     app.UseAuthorization();
 
