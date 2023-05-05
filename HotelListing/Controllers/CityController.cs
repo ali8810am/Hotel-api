@@ -13,6 +13,7 @@ namespace HotelListing.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public class CityController : ControllerBase
     {
         private readonly ILogger _logger;
@@ -29,23 +30,29 @@ namespace HotelListing.Controllers
         [HttpCacheExpiration(CacheLocation = CacheLocation.Public,MaxAge = 60)]
         [HttpCacheValidation(MustRevalidate = false)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCities([FromQuery] RequestParameters? parameters)
         {
             var cities = await _unitOfWork.Cities.GetAll(parameters);
                 var result = _mapper.Map<IList<CityDto>>(cities);
-                return Ok(result);
+                if (result == null)
+                    return NotFound();
+            return Ok(result);
         }
 
 
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCity(int id)
         {
            
                 var city = await _unitOfWork.Cities.Get(c=>c.Id==id,new List<string>{ "Hotels" });
                 var result = _mapper.Map<CityDto>(city);
+                if (result==null)
+                    return NotFound();
                 return Ok(result);
            
         }
@@ -54,6 +61,7 @@ namespace HotelListing.Controllers
         [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateCity([FromBody] CreateCityDto cityDto)
         {
@@ -68,10 +76,11 @@ namespace HotelListing.Controllers
             
         }
 
-        //[Authorize(Roles = UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateCity(int id, [FromBody] UpdateCityDto cityDto)
         {

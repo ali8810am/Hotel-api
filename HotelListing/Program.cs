@@ -32,9 +32,8 @@ try
 
     builder.Host.UseSerilog();
 
- 
-    builder.Services.ConfigureRateLimiting(builder.Configuration);
-
+    builder.Services.AddMemoryCache();
+    
     builder.Services.AddControllers(config =>
     {
         config.CacheProfiles.Add("120SecondDuration", new CacheProfile
@@ -56,7 +55,7 @@ try
     });
 
 
-    builder.Services.ConfigureHttpCacheHeaders();
+    //builder.Services.ConfigureHttpCacheHeaders();
     builder.Services.AddAuthentication();
     builder.Services.ConfigureIdentity();
     builder.Services.ConfigureJWT(builder.Configuration);
@@ -74,9 +73,8 @@ try
     builder.Services.AddScoped<IAuthManager, AuthManager>();
 
     builder.Services.ConfigureVersioning();
-
-
-
+    builder.Services.ConfigureRateLimiting(builder.Configuration);
+    builder.Services.AddHttpContextAccessor();
 
     var app = builder.Build();
 
@@ -95,9 +93,9 @@ try
 
     app.UseCors("AllowAll");
 
+    //app.UseResponseCaching();
+    //app.UseHttpCacheHeaders();
     app.UseIpRateLimiting();
-    app.UseResponseCaching();
-    app.UseHttpCacheHeaders();
 
 
     app.UseAuthorization();

@@ -145,34 +145,35 @@ namespace HotelListing
 
         public static void ConfigureRateLimiting(this IServiceCollection services, IConfiguration configuration)
         {
-         
-            services.AddMemoryCache();
-            services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
-            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
-            services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
-            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
-            services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
-            services.AddInMemoryRateLimiting();
 
-
-
-
-            //var rateLimitRules = new List<RateLimitRule>
-            //{
-            //    new RateLimitRule
-            //    {
-            //        Endpoint = "*",
-            //        Limit = 1,
-            //        Period = "5s"
-            //    }
-            //};
-            //services.Configure<IpRateLimitOptions>(opt =>
-            //{
-            //    opt.GeneralRules = rateLimitRules;
-            //});
-            //services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            //services.AddMemoryCache();
+            //services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
             //services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+            //services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
             //services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+            //services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+            //services.AddInMemoryRateLimiting();
+
+
+
+
+            var rateLimitRules = new List<RateLimitRule>
+            {
+                new RateLimitRule
+                {
+                    Endpoint = "*",
+                    Limit = 1,
+                    Period = "5s"
+                }
+            };
+            services.Configure<IpRateLimitOptions>(opt =>
+            {
+                opt.GeneralRules = rateLimitRules;
+            });
+            services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+            services.AddInMemoryRateLimiting();
+            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
         }
     }
